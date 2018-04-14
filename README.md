@@ -22,3 +22,11 @@ mkdir build
 cd build
 cmake .. -G "MinGW Makefiles"
 ```
+
+## Options
+
+Clone and build demo applications
+
+```
+cmake ... -DINCLUDE_APP=1
+``
