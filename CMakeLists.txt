@@ -1,5 +1,21 @@
 cmake_minimum_required (VERSION 3.6)
 
+#[[
+
+Options
+
+SKIP_LIB Don't pull or build any libraries
+SKIP_INSTALL Don't Install libraries (just build - not installed by default)
+CLEAN_ALL Clean all projects before building
+SKIP_PULL Don't pull, just build
+INCLUDE_LINK Build desktop interface libraries
+INCLUDE_QT Build QT based interface libraries
+INCLUDE_PRIVATE Build private libraries (only available for premium subsribers)
+INCLUD_APP Pull and build application samples
+INCLUDE_BSP Pull and build BSP sample projects
+
+]]#
+
 if( ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" )
 set(SOS_TOOLCHAIN_CMAKE_PATH /Applications/StratifyLabs-SDK/Tools/gcc/arm-none-eabi/cmake)
 endif()
