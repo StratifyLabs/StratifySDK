@@ -14,6 +14,10 @@ if(SKIP_INSTALL)
     set(LIB_INSTALL FALSE)
 endif()
 
+if(CLEAN_ALL)
+    set(SOS_SDK_CLEAN_ALL TRUE)
+endif()
+
 set(WORKSPACE_PATH ${CMAKE_SOURCE_DIR}/..)
 
 set(LIB_WORKSPACE_PATH ${WORKSPACE_PATH})
@@ -30,6 +34,13 @@ set(PRIVATE_LIB_PROJECTS
     smac
     StratifyOS-dev
 )
+set(PUBLIC_QT_LIB_PROJECTS
+    StratifyQML
+)
+
+set(PRIVATE_QT_LIB_PROJECTS
+    StratifyQt
+)
 
 set(APP_WORKSPACE_PATH ${WORKSPACE_PATH}/StratifyApps)
 set(APP_PROJECTS 
@@ -45,27 +56,52 @@ set(BSP_PROJECTS
     CoActionHero
     StratifyAlpha
     mbedLPC1768
+    Nucleo-F767ZI
+    Nucleo-F412ZG
+    Nucleo-F746ZG
+    Nucleo-F429ZI
+    Nucleo-F446ZE
+    Nucleo-F303ZE
+    STM32F723E-DISCO
+    STM32F411E-DISCO
 )
 
 if(NOT SKIP_PULL)
-    message(STATUS "Pulling Public Libraries")
-    foreach(PROJECT ${PUBLIC_LIB_PROJECTS})
-        message(STATUS "Clone or Pull: " ${PROJECT})
-        sos_clone_or_pull(${LIB_WORKSPACE_PATH}/${PROJECT} https://github.com/StratifyLabs/${PROJECT}.git ${LIB_WORKSPACE_PATH})
-    endforeach()
-
-    if(INCLUDE_PRIVATE)
-        foreach(PROJECT ${PRIVATE_LIB_PROJECTS})
+    if(NOT SKIP_LIB)
+        message(STATUS "Pulling Public Libraries")
+        foreach(PROJECT ${PUBLIC_LIB_PROJECTS})
             message(STATUS "Clone or Pull: " ${PROJECT})
-            sos_clone_or_pull(${LIB_WORKSPACE_PATH}/${PROJECT} https://github.com/StratifyLabs/${PROJECT}.git ${LIB_WORKSPACE_PATH})
+            sos_sdk_clone_or_pull(${LIB_WORKSPACE_PATH}/${PROJECT} https://github.com/StratifyLabs/${PROJECT}.git ${LIB_WORKSPACE_PATH})
         endforeach()
+
+        if(INCLUDE_LINK AND INCLUDE_QT)
+            foreach(PROJECT ${PUBLIC_QT_LIB_PROJECTS})
+                message(STATUS "Clone or Pull: " ${PROJECT})
+                sos_sdk_clone_or_pull(${LIB_WORKSPACE_PATH}/${PROJECT} https://github.com/StratifyLabs/${PROJECT}.git ${LIB_WORKSPACE_PATH})
+            endforeach()
+        endif()
+
+        if(INCLUDE_PRIVATE)
+            foreach(PROJECT ${PRIVATE_LIB_PROJECTS})
+                message(STATUS "Clone or Pull: " ${PROJECT})
+                sos_sdk_clone_or_pull(${LIB_WORKSPACE_PATH}/${PROJECT} https://github.com/StratifyLabs/${PROJECT}.git ${LIB_WORKSPACE_PATH})
+            endforeach()
+
+            foreach(PROJECT ${PRIVATE_QT_LIB_PROJECTS})
+                message(STATUS "Clone or Pull: " ${PROJECT})
+                sos_sdk_clone_or_pull(${LIB_WORKSPACE_PATH}/${PROJECT} https://github.com/StratifyLabs/${PROJECT}.git ${LIB_WORKSPACE_PATH})
+            endforeach()
+
+        endif()
+
     endif()
+
 
     if(INCLUDE_APP)
         message(STATUS "Pulling Applications")
         foreach(PROJECT ${APP_PROJECTS})
             message(STATUS "Clone or Pull: " ${PROJECT})
-            sos_clone_or_pull(${APP_WORKSPACE_PATH}/${PROJECT} https://github.com/StratifyLabs/${PROJECT}.git ${APP_WORKSPACE_PATH})
+            sos_sdk_clone_or_pull(${APP_WORKSPACE_PATH}/${PROJECT} https://github.com/StratifyLabs/${PROJECT}.git ${APP_WORKSPACE_PATH})
         endforeach()
     endif()
 
@@ -73,29 +109,38 @@ if(NOT SKIP_PULL)
         message(STATUS "Pulling BSPs")
         foreach(PROJECT ${BSP_PROJECTS})
             message(STATUS "Clone or Pull: " ${PROJECT})
-            sos_clone_or_pull(${APP_WORKSPACE_PATH}/${PROJECT} https://github.com/StratifyLabs/${PROJECT}.git ${APP_WORKSPACE_PATH})
+            sos_sdk_clone_or_pull(${BSP_WORKSPACE_PATH}/${PROJECT} https://github.com/StratifyLabs/${PROJECT}.git ${BSP_WORKSPACE_PATH})
         endforeach()
     endif()
 endif()
 
 if(NOT SKIP_BUILD)
-    message(STATUS "Building Public Libraries")
-    foreach(PROJECT ${PUBLIC_LIB_PROJECTS})
-        message(STATUS "Building: " ${PROJECT})
-        sos_build_lib(${LIB_WORKSPACE_PATH}/${PROJECT} ${LIB_INSTALL} arm)
-    endforeach()
+    if(NOT SKIP_LIB)
+        message(STATUS "Building Public Libraries")
+        foreach(PROJECT ${PUBLIC_LIB_PROJECTS})
+            message(STATUS "Building: " ${PROJECT})
+            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/${PROJECT} ${LIB_INSTALL} arm)
+        endforeach()
 
-    if(INCLUDE_LINK)
-        sos_build_lib(${LIB_WORKSPACE_PATH}/StratifyOS ${LIB_INSTALL} link)
-        sos_build_lib(${LIB_WORKSPACE_PATH}/son ${LIB_INSTALL} link)
-        sos_build_lib(${LIB_WORKSPACE_PATH}/StratifyAPI ${LIB_INSTALL} link)
+        if(INCLUDE_LINK)
+            message(STATUS "Building Link Libraries")
+            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/StratifyOS ${LIB_INSTALL} link)
+            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/son ${LIB_INSTALL} link)
+            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/StratifyAPI ${LIB_INSTALL} link)
+            if(INCLUDE_QT)
+                message(STATUS "Building QT Libraries")
+                sos_sdk_build_qt_lib(${LIB_WORKSPACE_PATH}/StratifyQt/StratifyLabs StratifyLabsUI link)
+                sos_sdk_build_qt_lib(${LIB_WORKSPACE_PATH}/StratifyQt/StratifyLabs StratifyData link)
+                sos_sdk_build_qt_lib(${LIB_WORKSPACE_PATH}/StratifyQt/StratifyLabs StratifyIO link)
+            endif()
+        endif()
     endif()
 
     if(INCLUDE_APP)
         message(STATUS "Building Applications")
         foreach(PROJECT ${APP_PROJECTS})
             message(STATUS "Building: " ${PROJECT})
-            sos_build_app(${APP_WORKSPACE_PATH}/${PROJECT})
+            sos_sdk_build_app(${APP_WORKSPACE_PATH}/${PROJECT})
         endforeach()
     endif()
 
@@ -103,7 +148,7 @@ if(NOT SKIP_BUILD)
         message(STATUS "Building BSPs")
         foreach(PROJECT ${BSP_PROJECTS})
             message(STATUS "Building: " ${PROJECT})
-            sos_build_app(${APP_WORKSPACE_PATH}/${PROJECT})
+            sos_sdk_build_app(${BSP_WORKSPACE_PATH}/${PROJECT})
         endforeach()
     endif()
 

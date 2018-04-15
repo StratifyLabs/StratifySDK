@@ -13,7 +13,7 @@ cd build
 cmake ..
 ```
 
-On Windows:
+On Windows (This hasn't been tested in windows yet):
 
 ```
 git clone https://github.com/StratifyLabs/StratifySDK.git
