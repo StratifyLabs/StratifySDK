@@ -15,7 +15,7 @@ INCLUDE_QT Build QT based interface libraries
 INCLUDE_PRIVATE Build private libraries (only available for premium subsribers)
 INCLUD_APP Pull and build application samples
 INCLUDE_BSP Pull and build BSP sample projects
-
+GIT_STATUS Show status all all git repos (SKIP_PULL and SKIP_BUILD)
 ]]#
 
 if( ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" )
@@ -83,6 +83,14 @@ set(BSP_PROJECTS
     STM32F723E-DISCO
     STM32F411E-DISCO
 )
+
+if(GIT_STATUS)
+    set(SKIP_PULL 1)
+    set(SKIP_BUILD 1)
+    foreach(PROJECT ${PUBLIC_LIB_PROJECTS})
+        sos_sdk_git_status(${LIB_WORKSPACE_PATH}/${PROJECT})
+    endforeach()
+endif()
 
 if(NOT SKIP_PULL)
     if(NOT SKIP_LIB)
