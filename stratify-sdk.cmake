@@ -2,6 +2,8 @@ cmake_minimum_required (VERSION 3.6)
 
 #[[
 
+cmake -DINCLUDE_QT=1 -P stratify-sdk.cmake
+
 Options
 
 SKIP_LIB Don't pull or build any libraries
