@@ -8,24 +8,10 @@ CMake Project to Pull (or clone) and build the Stratify SDK (Stratify OS, Strati
 to update an SDK that is already installed. It cannot be used
 to bootstrap an installation on a machine that doesn't have the SDK installed.
 
-On Mac:
-
 ```
 git clone https://github.com/StratifyLabs/StratifySDK.git
 cd StratifySDK
-mkdir build
-cd build
-cmake ..
-```
-
-On Windows (This hasn't been tested in windows yet):
-
-```
-git clone https://github.com/StratifyLabs/StratifySDK.git
-cd StratifySDK
-mkdir build
-cd build
-cmake .. -G "MinGW Makefiles"
+cmake -P stratify-sdk.cmake
 ```
 
 ## Options
@@ -33,11 +19,11 @@ cmake .. -G "MinGW Makefiles"
 Clone and build demo applications with SDK:
 
 ```
-cmake .. -DINCLUDE_APP=1
+cmake -DINCLUDE_APP=1 -P stratify-sdk.cmake
 ```
 
 Clone and build demo BSPs with SDK:
 
 ```
-cmake .. -DINCLUDE_BSP=1
+cmake -DINCLUDE_BSP=1 -P stratify-sdk.cmake
 ```
