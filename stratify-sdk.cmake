@@ -2,24 +2,29 @@ cmake_minimum_required (VERSION 3.6)
 
 #[[
 
+example:
+
 cmake -DINCLUDE_QT=1 -P stratify-sdk.cmake
 
-Options
+Options must be before the '-P' switch.
 
-SKIP_LIB Don't pull or build any libraries
-SKIP_INSTALL Don't Install libraries (just build - not installed by default)
-CLEAN_ALL Clean all projects before building
-SKIP_PULL Don't pull, just build
-INCLUDE_LINK Build desktop interface libraries
-INCLUDE_QT Build QT based interface libraries
-INCLUDE_PRIVATE Build private libraries (only available for premium subsribers)
-INCLUD_APP Pull and build application samples
-INCLUDE_BSP Pull and build BSP sample projects
-GIT_STATUS Show status all all git repos (SKIP_PULL and SKIP_BUILD)
 ]]#
 
+option(CLEAN "Clean all projects when building" OFF)
+option(GIT_PULL "Pull from git before building" ON)
+option(GIT_STATUS "Show status of all git repo's (implies SKIP_PULL and SKIP_BUILD" OFF)
+option(BUILD "Build all projects" ON)
+
+option(INSTALL_LIBRARIES "Install libraries" ON)
+option(INCLUDE_LIBRARIES "Build libraries" ON)
+option(INCLUDE_LINK "Build link libraries for the desktop" OFF)
+option(INCLUDE_QT "Build SDK Qt libraries" OFF)
+option(INCLUDE_PRIVATE "Build private repos" OFF)
+option(INCLUDE_BSP "Build Stratify OS BSPs" OFF)
+option(INCLUDE_APP "Build Stratify OS Applications" OFF)
+
 if( ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" )
-set(SOS_TOOLCHAIN_CMAKE_PATH /Applications/StratifyLabs-SDK/Tools/gcc/arm-none-eabi/cmake)
+    set(SOS_TOOLCHAIN_CMAKE_PATH /Applications/StratifyLabs-SDK/Tools/gcc/arm-none-eabi/cmake)
 endif()
 if( ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows" )
   set(SOS_TOOLCHAIN_CMAKE_PATH C:/StratifyLabs-SDK/Tools/gcc/arm-none-eabi/cmake)
@@ -27,12 +32,7 @@ endif()
 
 include(${SOS_TOOLCHAIN_CMAKE_PATH}/sos-sdk.cmake)
 
-set(LIB_INSTALL TRUE)
-if(SKIP_INSTALL)
-    set(LIB_INSTALL FALSE)
-endif()
-
-if(CLEAN_ALL)
+if(CLEAN)
     set(SOS_SDK_CLEAN_ALL TRUE)
 endif()
 
@@ -42,6 +42,7 @@ set(LIB_WORKSPACE_PATH ${WORKSPACE_PATH})
 set(PUBLIC_LIB_PROJECTS 
     StratifyOS
     StratifyOS-mcu-lpc
+    StratifyOS-CMSIS
     son
     sgfx
     StratifyAPI
@@ -85,15 +86,15 @@ set(BSP_PROJECTS
 )
 
 if(GIT_STATUS)
-    set(SKIP_PULL 1)
-    set(SKIP_BUILD 1)
+    set(GIT_PULL OFF)
+    set(BUILD OFF)
     foreach(PROJECT ${PUBLIC_LIB_PROJECTS})
         sos_sdk_git_status(${LIB_WORKSPACE_PATH}/${PROJECT})
     endforeach()
 endif()
 
-if(NOT SKIP_PULL)
-    if(NOT SKIP_LIB)
+if(GIT_PULL)
+    if(INCLUDE_LIBRARIES)
         message(STATUS "Pulling Public Libraries")
         foreach(PROJECT ${PUBLIC_LIB_PROJECTS})
             message(STATUS "Clone or Pull: " ${PROJECT})
@@ -140,27 +141,27 @@ if(NOT SKIP_PULL)
     endif()
 endif()
 
-if(NOT SKIP_BUILD)
-    if(NOT SKIP_LIB)
+if(BUILD)
+    if(INCLUDE_LIBRARIES)
         message(STATUS "Building Public Libraries")
         foreach(PROJECT ${PUBLIC_LIB_PROJECTS})
             message(STATUS "Building: " ${PROJECT})
-            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/${PROJECT} ${LIB_INSTALL} arm)
+            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/${PROJECT} ${INSTALL_LIBRARIES} arm)
         endforeach()
 
         if(INCLUDE_PRIVATE)
             message(STATUS "Building Private Libraries")
             foreach(PROJECT ${PRIVATE_LIB_PROJECTS})
                 message(STATUS "Building: " ${PROJECT})
-                sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/${PROJECT} ${LIB_INSTALL} arm)
+                sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/${PROJECT} ${INSTALL_LIBRARIES} arm)
             endforeach()
         endif()
 
         if(INCLUDE_LINK)
             message(STATUS "Building Link Libraries")
-            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/StratifyOS ${LIB_INSTALL} link)
-            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/son ${LIB_INSTALL} link)
-            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/StratifyAPI ${LIB_INSTALL} link)
+            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/StratifyOS ${INSTALL_LIBRARIES} link)
+            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/son ${INSTALL_LIBRARIES} link)
+            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/StratifyAPI ${INSTALL_LIBRARIES} link)
             if(INCLUDE_QT)
                 message(STATUS "Building QT Libraries")
                 sos_sdk_build_qt_lib(${LIB_WORKSPACE_PATH}/StratifyQML/StratifyLabs StratifyLabsUI link)
