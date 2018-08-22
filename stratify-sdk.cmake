@@ -11,17 +11,19 @@ Options must be before the '-P' switch.
 ]]#
 
 option(CLEAN "Clean all projects when building" OFF)
-option(GIT_PULL "Pull from git before building" ON)
 option(GIT_STATUS "Show status of all git repo's (implies SKIP_PULL and SKIP_BUILD" OFF)
+option(GIT_PULL "Pull from git before building" ON)
 option(BUILD "Build all projects" ON)
 
 option(INSTALL_LIBRARIES "Install libraries" ON)
 option(INCLUDE_LIBRARIES "Build libraries" ON)
-option(INCLUDE_LINK "Build link libraries for the desktop" OFF)
+option(INCLUDE_ARM "Include ARM libraries (cmake_arm build targets)" ON)
+option(INCLUDE_LINK "Build link libraries for the desktop (cmake_link build targets)" OFF)
+option(INCLUDE_THIRD_PARTY "Include third party libraries" ON)
 option(INCLUDE_QT "Build SDK Qt libraries" OFF)
 option(INCLUDE_PRIVATE "Build private repos" OFF)
-option(INCLUDE_BSP "Build Stratify OS BSPs" OFF)
-option(INCLUDE_APP "Build Stratify OS Applications" OFF)
+option(INCLUDE_BSP "Build Stratify OS BSPs (must INCLUDE_ARM too)" OFF)
+option(INCLUDE_APP "Build Stratify OS Applications (must INCLUDE_ARM too" OFF)
 
 if( ${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin" )
     set(SOS_TOOLCHAIN_CMAKE_PATH /Applications/StratifyLabs-SDK/Tools/gcc/arm-none-eabi/cmake)
@@ -46,6 +48,12 @@ set(PUBLIC_LIB_PROJECTS
     son
     sgfx
     StratifyAPI
+
+)
+
+set(PUBLIC_THIRD_PARTY_CLONE_PROJECTS
+    StratifyOS-mbedtls
+    StratifyOS-jansson
 )
 
 set(PRIVATE_LIB_PROJECTS 
@@ -88,18 +96,55 @@ set(BSP_PROJECTS
 if(GIT_STATUS)
     set(GIT_PULL OFF)
     set(BUILD OFF)
-    foreach(PROJECT ${PUBLIC_LIB_PROJECTS})
-        sos_sdk_git_status(${LIB_WORKSPACE_PATH}/${PROJECT})
-    endforeach()
+
+    if(INCLUDE_LIBRARIES)
+        foreach(PROJECT ${PUBLIC_LIB_PROJECTS})
+            sos_sdk_git_status(${LIB_WORKSPACE_PATH}/${PROJECT})
+        endforeach()
+        if(INCLUDE_PRIVATE)
+            foreach(PROJECT ${PRIVATE_LIB_PROJECTS})
+                sos_sdk_git_status(${LIB_WORKSPACE_PATH}/${PROJECT})
+            endforeach()
+
+            if(INCLUDE_QT)
+                foreach(PROJECT ${PRIVATE_QT_LIB_PROJECTS})
+                    sos_sdk_git_status(${LIB_WORKSPACE_PATH}/${PROJECT})
+                endforeach()
+            endif()
+
+        endif()
+    endif()
+
+    if(INCLUDE_BSP AND INCLUDE_ARM)
+        foreach(PROJECT ${BSP_PROJECTS})
+            sos_sdk_git_status(${BSP_WORKSPACE_PATH}/${PROJECT})
+        endforeach()
+    endif()
+
+    if(INCLUDE_APP AND INCLUDE_ARM)
+        foreach(PROJECT ${APP_PROJECTS})
+            sos_sdk_git_status(${APP_WORKSPACE_PATH}/${PROJECT})
+        endforeach()
+    endif()
+
 endif()
 
 if(GIT_PULL)
-    if(INCLUDE_LIBRARIES)
+    if(INCLUDE_LIBRARIES AND (INCLUDE_LINK OR INCLUDE_ARM))
         message(STATUS "Pulling Public Libraries")
         foreach(PROJECT ${PUBLIC_LIB_PROJECTS})
             message(STATUS "Clone or Pull: " ${PROJECT})
             sos_sdk_clone_or_pull(${LIB_WORKSPACE_PATH}/${PROJECT} https://github.com/StratifyLabs/${PROJECT}.git ${LIB_WORKSPACE_PATH})
         endforeach()
+
+        if(INCLUDE_THIRD_PARTY)
+            foreach(PROJECT ${PUBLIC_THIRD_PARTY_CLONE_PROJECTS})
+            message(STATUS "Clone or Pull: " ${PROJECT})
+                sos_sdk_clone_or_pull(${LIB_WORKSPACE_PATH}/${PROJECT} https://github.com/StratifyLabs/${PROJECT}.git ${LIB_WORKSPACE_PATH})
+                #these require an extra step
+                execute_process(COMMAND ${SOS_SDK_CMAKE_EXEC} -P ${PROJECT}.cmake .. WORKING_DIRECTORY ${LIB_WORKSPACE_PATH}/${PROJECT})
+            endforeach()
+        endif()
 
         if(INCLUDE_LINK AND INCLUDE_QT)
             foreach(PROJECT ${PUBLIC_QT_LIB_PROJECTS})
@@ -109,22 +154,25 @@ if(GIT_PULL)
         endif()
 
         if(INCLUDE_PRIVATE)
-            foreach(PROJECT ${PRIVATE_LIB_PROJECTS})
-                message(STATUS "Clone or Pull: " ${PROJECT})
-                sos_sdk_clone_or_pull(${LIB_WORKSPACE_PATH}/${PROJECT} https://github.com/tyler-gilbert/${PROJECT}.git ${LIB_WORKSPACE_PATH})
-            endforeach()
 
-            foreach(PROJECT ${PRIVATE_QT_LIB_PROJECTS})
-                message(STATUS "Clone or Pull: " ${PROJECT})
-                sos_sdk_clone_or_pull(${LIB_WORKSPACE_PATH}/${PROJECT} https://github.com/tyler-gilbert/${PROJECT}.git ${LIB_WORKSPACE_PATH})
-            endforeach()
+            if(INCLUDE_ARM)
+                foreach(PROJECT ${PRIVATE_LIB_PROJECTS})
+                    message(STATUS "Clone or Pull: " ${PROJECT})
+                    sos_sdk_clone_or_pull(${LIB_WORKSPACE_PATH}/${PROJECT} https://github.com/tyler-gilbert/${PROJECT}.git ${LIB_WORKSPACE_PATH})
+                endforeach()
+            endif()
 
+            if(INCLUDE_QT)
+                foreach(PROJECT ${PRIVATE_QT_LIB_PROJECTS})
+                    message(STATUS "Clone or Pull: " ${PROJECT})
+                    sos_sdk_clone_or_pull(${LIB_WORKSPACE_PATH}/${PROJECT} https://github.com/tyler-gilbert/${PROJECT}.git ${LIB_WORKSPACE_PATH})
+                endforeach()
+            endif()
         endif()
-
     endif()
 
 
-    if(INCLUDE_APP)
+    if(INCLUDE_APP AND INCLUDE_ARM)
         message(STATUS "Pulling Applications")
         foreach(PROJECT ${APP_PROJECTS})
             message(STATUS "Clone or Pull: " ${PROJECT})
@@ -132,7 +180,7 @@ if(GIT_PULL)
         endforeach()
     endif()
 
-    if(INCLUDE_BSP)
+    if(INCLUDE_BSP AND INCLUDE_ARM)
         message(STATUS "Pulling BSPs")
         foreach(PROJECT ${BSP_PROJECTS})
             message(STATUS "Clone or Pull: " ${PROJECT})
@@ -144,17 +192,19 @@ endif()
 if(BUILD)
     if(INCLUDE_LIBRARIES)
         message(STATUS "Building Public Libraries")
-        foreach(PROJECT ${PUBLIC_LIB_PROJECTS})
-            message(STATUS "Building: " ${PROJECT})
-            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/${PROJECT} ${INSTALL_LIBRARIES} arm)
-        endforeach()
-
-        if(INCLUDE_PRIVATE)
-            message(STATUS "Building Private Libraries")
-            foreach(PROJECT ${PRIVATE_LIB_PROJECTS})
+        if(INCLUDE_ARM)
+            foreach(PROJECT ${PUBLIC_LIB_PROJECTS})
                 message(STATUS "Building: " ${PROJECT})
                 sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/${PROJECT} ${INSTALL_LIBRARIES} arm)
             endforeach()
+
+            if(INCLUDE_PRIVATE)
+                message(STATUS "Building Private Libraries")
+                foreach(PROJECT ${PRIVATE_LIB_PROJECTS})
+                    message(STATUS "Building: " ${PROJECT})
+                    sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/${PROJECT} ${INSTALL_LIBRARIES} arm)
+                endforeach()
+            endif()
         endif()
 
         if(INCLUDE_LINK)
@@ -175,7 +225,7 @@ if(BUILD)
 
     endif()
 
-    if(INCLUDE_APP)
+    if(INCLUDE_APP AND INCLUDE_ARM)
         message(STATUS "Building Applications")
         foreach(PROJECT ${APP_PROJECTS})
             message(STATUS "Building: " ${PROJECT})
@@ -183,7 +233,7 @@ if(BUILD)
         endforeach()
     endif()
 
-    if(INCLUDE_BSP)
+    if(INCLUDE_BSP AND INCLUDE_ARM)
         message(STATUS "Building BSPs")
         foreach(PROJECT ${BSP_PROJECTS})
             message(STATUS "Building: " ${PROJECT})
