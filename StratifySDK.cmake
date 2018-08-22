@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 3.6)
 
 example:
 
-cmake -DINCLUDE_QT=1 -P stratify-sdk.cmake
+cmake -DINCLUDE_QT=1 -P StratifySDK.cmake
 
 Options must be before the '-P' switch.
 

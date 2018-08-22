@@ -11,7 +11,7 @@ to bootstrap an installation on a machine that doesn't have the SDK installed.
 ```
 git clone https://github.com/StratifyLabs/StratifySDK.git
 cd StratifySDK
-cmake -P stratify-sdk.cmake
+cmake -P StratifySDK.cmake
 ```
 
 ## Options
@@ -19,11 +19,11 @@ cmake -P stratify-sdk.cmake
 Clone and build demo applications with SDK:
 
 ```
-cmake -DINCLUDE_APP=1 -P stratify-sdk.cmake
+cmake -DINCLUDE_APP=1 -P StratifySDK.cmake
 ```
 
 Clone and build demo BSPs with SDK:
 
 ```
-cmake -DINCLUDE_BSP=1 -P stratify-sdk.cmake
+cmake -DINCLUDE_BSP=1 -P StratifySDK.cmake
 ```
