@@ -47,8 +47,6 @@ set(PUBLIC_LIB_PROJECTS
     StratifyOS-CMSIS
     son
     sgfx
-    StratifyAPI
-
 )
 
 set(PUBLIC_THIRD_PARTY_CLONE_PROJECTS
@@ -136,6 +134,7 @@ if(GIT_PULL)
             message(STATUS "Clone or Pull: " ${PROJECT})
             sos_sdk_clone_or_pull(${LIB_WORKSPACE_PATH}/${PROJECT} https://github.com/StratifyLabs/${PROJECT}.git ${LIB_WORKSPACE_PATH})
         endforeach()
+        sos_sdk_clone_or_pull(${LIB_WORKSPACE_PATH}/StratifyAPI https://github.com/StratifyLabs/StratifyAPI.git ${LIB_WORKSPACE_PATH})
 
         if(INCLUDE_THIRD_PARTY)
             foreach(PROJECT ${PUBLIC_THIRD_PARTY_CLONE_PROJECTS})
@@ -198,6 +197,15 @@ if(BUILD)
                 sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/${PROJECT} ${INSTALL_LIBRARIES} arm)
             endforeach()
 
+            if(INCLUDE_THIRD_PARTY)
+                foreach(PROJECT ${PUBLIC_THIRD_PARTY_CLONE_PROJECTS})
+                    message(STATUS "Building: " ${PROJECT})
+                    sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/${PROJECT} ${INSTALL_LIBRARIES} arm)
+                endforeach()
+            endif()
+
+            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/StratifyAPI ${INSTALL_LIBRARIES} arm)
+
             if(INCLUDE_PRIVATE)
                 message(STATUS "Building Private Libraries")
                 foreach(PROJECT ${PRIVATE_LIB_PROJECTS})
@@ -211,6 +219,8 @@ if(BUILD)
             message(STATUS "Building Link Libraries")
             sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/StratifyOS ${INSTALL_LIBRARIES} link)
             sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/son ${INSTALL_LIBRARIES} link)
+            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/StratifyOS-jansson ${INSTALL_LIBRARIES} link)
+            sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/StratifyOS-mbedtls ${INSTALL_LIBRARIES} link)
             sos_sdk_build_lib(${LIB_WORKSPACE_PATH}/StratifyAPI ${INSTALL_LIBRARIES} link)
             if(INCLUDE_QT)
                 message(STATUS "Building QT Libraries")
