@@ -44,12 +44,12 @@ set(LIB_WORKSPACE_PATH ${WORKSPACE_PATH})
 set(PUBLIC_LIB_PROJECTS 
     StratifyOS
     StratifyOS-mcu-lpc
-    StratifyOS-CMSIS
     son
     sgfx
 )
 
 set(PUBLIC_THIRD_PARTY_CLONE_PROJECTS
+    StratifyOS-CMSIS
     StratifyOS-mbedtls
     StratifyOS-jansson
 )
