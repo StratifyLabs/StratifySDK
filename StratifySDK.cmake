@@ -43,9 +43,9 @@ set(WORKSPACE_PATH ${CMAKE_SOURCE_DIR}/..)
 set(LIB_WORKSPACE_PATH ${WORKSPACE_PATH})
 set(PUBLIC_LIB_PROJECTS 
     StratifyOS
-		StratifyOS-mcu-lpc
-		StratifyOS-mcu-stm32
-		son
+	StratifyOS-mcu-lpc
+	StratifyOS-mcu-stm32
+	son
     sgfx
 )
 
