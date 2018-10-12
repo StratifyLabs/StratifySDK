@@ -40,7 +40,7 @@ And here is an example of the above command with values populated.
 
 ```
 cmake -DINCLUDE_LINK=ON -DINCLUDE_ARM=OFF -DSOS_SDK_TOOLCHAIN_DIR=C:/Qt-5.9/Tools/mingw530_32 -DSOS_SDK_TOOLCHAIN_HOST=i686-w64-mingw32 -P StratifySDK.cmake
-``
+```
 
 ### Mac OS X
 
