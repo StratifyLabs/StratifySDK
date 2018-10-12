@@ -19,11 +19,17 @@ cmake -P StratifySDK.cmake
 Clone and build demo applications with SDK:
 
 ```
-cmake -DINCLUDE_APP=1 -P StratifySDK.cmake
+cmake -DINCLUDE_APP=ON -P StratifySDK.cmake
 ```
 
 Clone and build demo BSPs with SDK:
 
 ```
-cmake -DINCLUDE_BSP=1 -P StratifySDK.cmake
+cmake -DINCLUDE_BSP=ON -P StratifySDK.cmake
+```
+
+Build the libraries for execution in a desktop environment
+
+```
+cmake -DINCLUDE_ARM=OFF -DINCLUDE_LINK=ON -DSOS_SDK_TOOLCHAIN_DIR=<path to mingw> -DSOS_SDK_TOOLCHAIN_HOST=<mingw-prefix> -P StratifySDK.cmake
 ```
