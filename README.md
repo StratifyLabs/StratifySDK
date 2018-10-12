@@ -28,8 +28,14 @@ Clone and build demo BSPs with SDK:
 cmake -DINCLUDE_BSP=ON -P StratifySDK.cmake
 ```
 
-Build the libraries for execution in a desktop environment
+Build the libraries for execution in a desktop environment for Windows:
 
 ```
-cmake -DINCLUDE_ARM=OFF -DINCLUDE_LINK=ON -DSOS_SDK_TOOLCHAIN_DIR=<path to mingw> -DSOS_SDK_TOOLCHAIN_HOST=<mingw-prefix> -P StratifySDK.cmake
+cmake -DINCLUDE_LINK=ON -DINCLUDE_ARM=OFF -DSOS_SDK_TOOLCHAIN_DIR=C:/Qt-5.9/Tools/mingw530_32 -DSOS_SDK_TOOLCHAIN_HOST=i686-w64-mingw32 -P StratifySDK.cmake
+```
+
+Build the libraries for execution in a desktop environment for Mac:
+
+```
+cmake -DINCLUDE_LINK=ON -DINCLUDE_ARM=OFF -P StratifySDK.cmake
 ```
